@@ -15,6 +15,7 @@ import { WelcomeScreen } from "@/screens/WelcomeScreen"
 import { useAppTheme } from "@/theme/context"
 
 import { DemoNavigator } from "./DemoNavigator" // @demo remove-current-line
+import { MainTabNavigator } from "./MainTabNavigator"
 import type { AppStackParamList, NavigationProps } from "./navigationTypes"
 import { navigationRef, useBackButtonHandler } from "./navigationUtilities"
 
@@ -44,12 +45,13 @@ const AppStack = () => {
           backgroundColor: colors.background,
         },
       }}
-      initialRouteName={isAuthenticated ? "Welcome" : "Login"} // @demo remove-current-line
+      initialRouteName={isAuthenticated ? "MainTabs" : "Login"} // @demo remove-current-line
     >
       {/* @demo remove-block-start */}
       {isAuthenticated ? (
         <>
           {/* @demo remove-block-end */}
+          <Stack.Screen name="MainTabs" component={MainTabNavigator} />
           <Stack.Screen name="Welcome" component={WelcomeScreen} />
           {/* @demo remove-block-start */}
           <Stack.Screen name="Demo" component={DemoNavigator} />

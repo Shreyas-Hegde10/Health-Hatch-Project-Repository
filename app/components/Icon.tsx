@@ -116,6 +116,7 @@ export const iconRegistry = {
   caretRight: require("@assets/icons/caretRight.png"),
   check: require("@assets/icons/check.png"),
   clap: require("@assets/icons/demo/clap.png"), // @demo remove-current-line
+  clouds: require("@assets/icons/clouds.png"),
   community: require("@assets/icons/demo/community.png"), // @demo remove-current-line
   components: require("@assets/icons/demo/components.png"), // @demo remove-current-line
   debug: require("@assets/icons/demo/debug.png"), // @demo remove-current-line
@@ -128,8 +129,11 @@ export const iconRegistry = {
   more: require("@assets/icons/more.png"),
   pin: require("@assets/icons/demo/pin.png"), // @demo remove-current-line
   podcast: require("@assets/icons/demo/podcast.png"), // @demo remove-current-line
+  reload: require("@assets/icons/reload.png"),
+  resistance: require("@assets/icons/resistance.png"), // @demo remove-current-line
   settings: require("@assets/icons/settings.png"),
   slack: require("@assets/icons/demo/slack.png"), // @demo remove-current-line
+  temperature: require("@assets/icons/temperature.png"), 
   view: require("@assets/icons/view.png"),
   x: require("@assets/icons/x.png"),
 }

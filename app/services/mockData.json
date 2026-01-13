@@ -1,0 +1,99 @@
+{
+  "currentStatus": {
+    "status": "optimal",
+    "statusText": "Optimal Hydration",
+    "lastSynced": "12:46 AM",
+    "fluidLevel": 68,
+    "message": "Your fluid levels are balanced and healthy."
+  },
+  "metrics": {
+    "impedance": {
+      "value": 450,
+      "unit": "Ω",
+      "label": "IMPEDANCE"
+    },
+    "skinTemp": {
+      "value": 36.6,
+      "unit": "°C",
+      "label": "SKIN TEMP"
+    },
+    "heartRate": {
+      "value": 72,
+      "unit": "bpm",
+      "label": "HEART RATE"
+    },
+    "weather": {
+      "value": 24,
+      "unit": "°C",
+      "label": "WEATHER"
+    }
+  },
+  "aiRecommendation": {
+    "title": "AI RECOMMENDATION",
+    "message": "Weather is warming up (24°C). Increase water intake by 15% today to maintain balance."
+  },
+  "alerts": [
+    {
+      "id": "1",
+      "severity": "warning",
+      "title": "Mild Dehydration Detected",
+      "message": "Your hydration level has dropped to 52%. Drink 250ml of water now.",
+      "timestamp": "2026-01-13T10:30:00Z",
+      "nextSteps": [
+        "Drink 250ml (8oz) of water immediately",
+        "Avoid caffeine for the next 2 hours",
+        "Check status again in 30 minutes"
+      ]
+    },
+    {
+      "id": "2",
+      "severity": "info",
+      "title": "Morning Hydration",
+      "message": "Start your day with water to restore overnight fluid loss.",
+      "timestamp": "2026-01-13T07:00:00Z",
+      "nextSteps": [
+        "Drink 500ml (16oz) of water within 30 minutes of waking"
+      ]
+    }
+  ],
+  "trends": {
+    "daily": [
+      { "time": "6:00", "level": 62 },
+      { "time": "9:00", "level": 68 },
+      { "time": "12:00", "level": 72 },
+      { "time": "15:00", "level": 70 },
+      { "time": "18:00", "level": 68 },
+      { "time": "21:00", "level": 65 }
+    ],
+    "weekly": [
+      { "day": "Mon", "avgLevel": 65 },
+      { "day": "Tue", "avgLevel": 68 },
+      { "day": "Wed", "avgLevel": 70 },
+      { "day": "Thu", "avgLevel": 67 },
+      { "day": "Fri", "avgLevel": 72 },
+      { "day": "Sat", "avgLevel": 69 },
+      { "day": "Sun", "avgLevel": 68 }
+    ]
+  },
+  "personalization": {
+    "baselineFluidLevel": 68,
+    "activityLevel": "moderate",
+    "environmentalFactors": {
+      "temperature": 24,
+      "humidity": 45
+    },
+    "learningProgress": 78
+  },
+  "thresholds": {
+    "dehydration": {
+      "mild": 55,
+      "moderate": 45,
+      "severe": 35
+    },
+    "retention": {
+      "mild": 80,
+      "moderate": 85,
+      "severe": 90
+    }
+  }
+}
