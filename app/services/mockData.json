@@ -57,23 +57,84 @@
     }
   ],
   "trends": {
-    "daily": [
-      { "time": "6:00", "level": 62 },
-      { "time": "9:00", "level": 68 },
-      { "time": "12:00", "level": 72 },
-      { "time": "15:00", "level": 70 },
-      { "time": "18:00", "level": 68 },
-      { "time": "21:00", "level": 65 }
-    ],
-    "weekly": [
-      { "day": "Mon", "avgLevel": 65 },
-      { "day": "Tue", "avgLevel": 68 },
-      { "day": "Wed", "avgLevel": 70 },
-      { "day": "Thu", "avgLevel": 67 },
-      { "day": "Fri", "avgLevel": 72 },
-      { "day": "Sat", "avgLevel": 69 },
-      { "day": "Sun", "avgLevel": 68 }
-    ]
+    "hydration": {
+      "daily": [
+        { "time": "6:00", "level": 62 },
+        { "time": "9:00", "level": 68 },
+        { "time": "12:00", "level": 72 },
+        { "time": "15:00", "level": 70 },
+        { "time": "18:00", "level": 68 },
+        { "time": "21:00", "level": 65 }
+      ],
+      "weekly": [
+        { "day": "Mon", "avgLevel": 65, "status": "optimal" },
+        { "day": "Tue", "avgLevel": 68, "status": "optimal" },
+        { "day": "Wed", "avgLevel": 52, "status": "sub-optimal" },
+        { "day": "Thu", "avgLevel": 70, "status": "optimal" },
+        { "day": "Fri", "avgLevel": 67, "status": "optimal" },
+        { "day": "Sat", "avgLevel": 66, "status": "optimal" },
+        { "day": "Sun", "avgLevel": 68, "status": "optimal" }
+      ],
+      "monthly": [
+        { "week": "Week 1", "avgLevel": 67 },
+        { "week": "Week 2", "avgLevel": 65 },
+        { "week": "Week 3", "avgLevel": 70 },
+        { "week": "Week 4", "avgLevel": 68 }
+      ],
+      "consistency": 84,
+      "score": "A-"
+    },
+    "impedance": {
+      "weekly": [
+        { "day": "Mon", "value": 445 },
+        { "day": "Tue", "value": 448 },
+        { "day": "Wed", "value": 462 },
+        { "day": "Thu", "value": 450 },
+        { "day": "Fri", "value": 447 },
+        { "day": "Sat", "value": 449 },
+        { "day": "Sun", "value": 450 }
+      ],
+      "monthly": [
+        { "week": "Week 1", "avgValue": 447 },
+        { "week": "Week 2", "avgValue": 452 },
+        { "week": "Week 3", "avgValue": 448 },
+        { "week": "Week 4", "avgValue": 450 }
+      ]
+    },
+    "skinTemp": {
+      "weekly": [
+        { "day": "Mon", "value": 36.5 },
+        { "day": "Tue", "value": 36.6 },
+        { "day": "Wed", "value": 36.7 },
+        { "day": "Thu", "value": 36.6 },
+        { "day": "Fri", "value": 36.5 },
+        { "day": "Sat", "value": 36.6 },
+        { "day": "Sun", "value": 36.6 }
+      ],
+      "monthly": [
+        { "week": "Week 1", "avgValue": 36.5 },
+        { "week": "Week 2", "avgValue": 36.6 },
+        { "week": "Week 3", "avgValue": 36.7 },
+        { "week": "Week 4", "avgValue": 36.6 }
+      ]
+    },
+    "heartRate": {
+      "weekly": [
+        { "day": "Mon", "value": 70 },
+        { "day": "Tue", "value": 72 },
+        { "day": "Wed", "value": 75 },
+        { "day": "Thu", "value": 71 },
+        { "day": "Fri", "value": 73 },
+        { "day": "Sat", "value": 71 },
+        { "day": "Sun", "value": 72 }
+      ],
+      "monthly": [
+        { "week": "Week 1", "avgValue": 71 },
+        { "week": "Week 2", "avgValue": 73 },
+        { "week": "Week 3", "avgValue": 72 },
+        { "week": "Week 4", "avgValue": 72 }
+      ]
+    }
   },
   "personalization": {
     "baselineFluidLevel": 68,

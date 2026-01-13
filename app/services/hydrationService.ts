@@ -46,13 +46,30 @@ export interface Alert {
 export interface TrendData {
   time?: string
   day?: string
+  week?: string
   level?: number
   avgLevel?: number
+  value?: number
+  avgValue?: number
+  status?: string
+}
+
+export interface MetricTrend {
+  weekly: TrendData[]
+  monthly: TrendData[]
+}
+
+export interface HydrationTrend extends MetricTrend {
+  daily: TrendData[]
+  consistency: number
+  score: string
 }
 
 export interface Trends {
-  daily: TrendData[]
-  weekly: TrendData[]
+  hydration: HydrationTrend
+  impedance: MetricTrend
+  skinTemp: MetricTrend
+  heartRate: MetricTrend
 }
 
 export interface Personalization {
