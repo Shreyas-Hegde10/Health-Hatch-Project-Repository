@@ -18,7 +18,6 @@ export type MainTabParamList = {
   Alerts: undefined
   Trends: undefined
   AI: undefined
-  Access: undefined
   Settings: undefined
 }
 
@@ -91,16 +90,6 @@ export const MainTabNavigator = () => {
           tabBarLabel: "AI",
           tabBarIcon: ({ color }) => (
             <Icon icon="components" color={color} size={22} />
-          ),
-        }}
-      />
-      <Tab.Screen
-        name="Access"
-        component={AccessibilityScreen}
-        options={{
-          tabBarLabel: "ACCESS",
-          tabBarIcon: ({ color }) => (
-            <Icon icon="heart" color={color} size={22} />
           ),
         }}
       />

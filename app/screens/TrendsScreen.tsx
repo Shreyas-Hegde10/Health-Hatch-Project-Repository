@@ -1,15 +1,10 @@
 import React, { FC, useEffect, useState } from "react"
-import { View, StyleSheet, TextStyle, ViewStyle, Dimensions } from "react-native"
+import { View, StyleSheet, TextStyle, ViewStyle, ScrollView } from "react-native"
 import { Screen } from "@/components/Screen"
 import { Text } from "@/components/Text"
-import { WeeklyChart } from "@/components/WeeklyChart"
+import { HistoricalAnalysisChart } from "@/components/HistoricalAnalysisChart"
 import { StatCard } from "@/components/StatCard"
-import { MetricCard } from "@/components/MetricCard"
 import { fetchTrends, type Trends } from "@/services/hydrationService"
-import { useSharedValue } from "react-native-reanimated"
-import Carousel from "react-native-reanimated-carousel"
-
-const { width: SCREEN_WIDTH } = Dimensions.get("window")
 
 /**
  * Trends Screen
@@ -18,7 +13,6 @@ const { width: SCREEN_WIDTH } = Dimensions.get("window")
 export const TrendsScreen: FC = function TrendsScreen() {
   const [trends, setTrends] = useState<Trends | null>(null)
   const [loading, setLoading] = useState(true)
-  const progress = useSharedValue<number>(0)
 
   useEffect(() => {
     loadTrends()
@@ -43,48 +37,51 @@ export const TrendsScreen: FC = function TrendsScreen() {
     )
   }
 
-  const carouselData = [
-    {
-      metricName: "Hydration Level",
-      currentValue: 68,
-      unit: "%",
-      weeklyData: trends.hydration.weekly.map((d) => ({
-        day: d.day!,
-        value: d.avgLevel!,
-      })),
-      color: "#6366F1",
+  // Prepare data for the HistoricalAnalysisChart
+  const hydrationData = trends.hydration.weekly.map((d) => ({
+    day: d.day!,
+    value: d.avgLevel!,
+  }))
+
+  const impedanceData = trends.impedance.weekly.map((d) => ({
+    day: d.day!,
+    value: d.value!,
+  }))
+
+  const skinTempData = trends.skinTemp.weekly.map((d) => ({
+    day: d.day!,
+    value: d.value!,
+  }))
+
+  const heartRateData = trends.heartRate.weekly.map((d) => ({
+    day: d.day!,
+    value: d.value!,
+  }))
+
+  // Calculate averages
+  const calculateAverage = (data: { value: number }[]) => {
+    const sum = data.reduce((acc, d) => acc + d.value, 0)
+    return sum / data.length
+  }
+
+  const averages = {
+    hydration: {
+      current: calculateAverage(hydrationData),
+      change: 4, // Mock change percentage
     },
-    {
-      metricName: "Skin Impedance",
-      currentValue: 450,
-      unit: "Ω",
-      weeklyData: trends.impedance.weekly.map((d) => ({
-        day: d.day!,
-        value: d.value!,
-      })),
-      color: "#8B5CF6",
+    impedance: {
+      current: calculateAverage(impedanceData),
+      change: -2,
     },
-    {
-      metricName: "Skin Temperature",
-      currentValue: 36.6,
-      unit: "°C",
-      weeklyData: trends.skinTemp.weekly.map((d) => ({
-        day: d.day!,
-        value: d.value!,
-      })),
-      color: "#F59E0B",
+    skinTemp: {
+      current: calculateAverage(skinTempData),
+      change: 0.1,
     },
-    {
-      metricName: "Heart Rate",
-      currentValue: 72,
-      unit: "bpm",
-      weeklyData: trends.heartRate.weekly.map((d) => ({
-        day: d.day!,
-        value: d.value!,
-      })),
-      color: "#EC4899",
+    heartRate: {
+      current: calculateAverage(heartRateData),
+      change: 1,
     },
-  ]
+  }
 
   return (
     <Screen preset="fixed" safeAreaEdges={["top"]} contentContainerStyle={styles.screen}>
@@ -92,11 +89,15 @@ export const TrendsScreen: FC = function TrendsScreen() {
         <Text style={styles.title}>Insights & Trends</Text>
       </View>
 
-      <View style={styles.scrollContainer}>
-        {/* Weekly Performance Chart */}
-        <View style={styles.section}>
-          <WeeklyChart data={trends.hydration.weekly} />
-        </View>
+      <ScrollView style={styles.scrollContainer} showsVerticalScrollIndicator={false}>
+        {/* Historical Analysis Chart with Metric Tabs */}
+        <HistoricalAnalysisChart
+          hydrationData={hydrationData}
+          impedanceData={impedanceData}
+          skinTempData={skinTempData}
+          heartRateData={heartRateData}
+          averages={averages}
+        />
 
         {/* Stat Cards Row */}
         <View style={styles.statsRow}>
@@ -118,38 +119,9 @@ export const TrendsScreen: FC = function TrendsScreen() {
           />
         </View>
 
-        {/* Carousel Section */}
-        <View style={styles.carouselSection}>
-          <Text style={styles.sectionTitle}>Detailed Metrics</Text>
-          <Carousel
-            loop={false}
-            width={SCREEN_WIDTH}
-            height={420}
-            data={carouselData}
-            scrollAnimationDuration={300}
-            mode="parallax"
-            modeConfig={{
-              parallaxScrollingScale: 0.9,
-              parallaxScrollingOffset: 50,
-            }}
-            onProgressChange={(offsetProgress, absoluteProgress) => {
-              progress.value = absoluteProgress
-            }}
-            renderItem={({ item }) => (
-              <MetricCard
-                metricName={item.metricName}
-                currentValue={item.currentValue}
-                unit={item.unit}
-                weeklyData={item.weeklyData}
-                color={item.color}
-              />
-            )}
-          />
-        </View>
-
         {/* Bottom Spacing */}
         <View style={styles.bottomSpacing} />
-      </View>
+      </ScrollView>
     </Screen>
   )
 }
@@ -187,33 +159,17 @@ const styles = StyleSheet.create({
     flex: 1,
   } as ViewStyle,
 
-  section: {
-    paddingHorizontal: 16,
-    marginBottom: 16,
-  } as ViewStyle,
-
   statsRow: {
     flexDirection: "row",
     gap: 12,
     paddingHorizontal: 16,
+    marginTop: 8,
     marginBottom: 24,
   } as ViewStyle,
 
   statCard: {
     flex: 1,
   } as ViewStyle,
-
-  carouselSection: {
-    marginBottom: 20,
-  } as ViewStyle,
-
-  sectionTitle: {
-    fontSize: 18,
-    fontWeight: "700",
-    color: "#1F2937",
-    paddingHorizontal: 20,
-    marginBottom: 16,
-  } as TextStyle,
 
   bottomSpacing: {
     height: 40,

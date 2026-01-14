@@ -23,7 +23,7 @@ import { useFonts } from "expo-font"
 import * as Linking from "expo-linking"
 import { KeyboardProvider } from "react-native-keyboard-controller"
 import { initialWindowMetrics, SafeAreaProvider } from "react-native-safe-area-context"
-
+import {GestureHandlerRootView} from "react-native-gesture-handler" 
 import { AuthProvider } from "./context/AuthContext" // @demo remove-current-line
 import { initI18n } from "./i18n"
 import { AppNavigator } from "./navigators/AppNavigator"
@@ -94,22 +94,24 @@ export function App() {
 
   // otherwise, we're ready to render the app
   return (
-    <SafeAreaProvider initialMetrics={initialWindowMetrics}>
-      <KeyboardProvider>
-        {/* @demo remove-block-start */}
-        <AuthProvider>
-          {/* @demo remove-block-end */}
-          <ThemeProvider>
-            <AppNavigator
-              linking={linking}
-              initialState={initialNavigationState}
-              onStateChange={onNavigationStateChange}
-            />
-          </ThemeProvider>
+    <GestureHandlerRootView style={{ flex: 1 }}>
+      <SafeAreaProvider initialMetrics={initialWindowMetrics}>
+        <KeyboardProvider>
           {/* @demo remove-block-start */}
-        </AuthProvider>
-        {/* @demo remove-block-end */}
-      </KeyboardProvider>
-    </SafeAreaProvider>
+          <AuthProvider>
+            {/* @demo remove-block-end */}
+            <ThemeProvider>
+              <AppNavigator
+                linking={linking}
+                initialState={initialNavigationState}
+                onStateChange={onNavigationStateChange}
+              />
+            </ThemeProvider>
+            {/* @demo remove-block-start */}
+          </AuthProvider>
+          {/* @demo remove-block-end */}
+        </KeyboardProvider>
+      </SafeAreaProvider> 
+    </GestureHandlerRootView>
   )
 }

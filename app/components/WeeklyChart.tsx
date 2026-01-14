@@ -1,5 +1,5 @@
-import React from "react"
-import { StyleSheet, View, ViewStyle, TextStyle } from "react-native"
+import React, {useState} from "react"
+import { StyleSheet, View, ViewStyle, TextStyle, Pressable} from "react-native"
 import { Text } from "./Text"
 
 export interface WeeklyChartProps {
@@ -22,7 +22,9 @@ export const WeeklyChart: React.FC<WeeklyChartProps> = ({
   title = "Weekly Performance",
   timeRange = "Last 7 Days",
   style,
-}) => {
+}) => { 
+  const [hoveredIndex, setHoveredIndex] = useState<number | null>(null)
+  
   const maxValue = Math.max(...data.map((d) => d.avgLevel))
   const minValue = Math.min(...data.map((d) => d.avgLevel))
   const range = maxValue - minValue
@@ -58,14 +60,22 @@ export const WeeklyChart: React.FC<WeeklyChartProps> = ({
       <View style={styles.chartContainer}>
         {data.map((item, index) => (
           <View key={index} style={styles.barWrapper}>
-            <View
+            {hoveredIndex === index && (
+                <View style={styles.tooltip}>
+                  <Text style={styles.tooltipText}>{item.day}</Text> 
+                  <Text style={styles.tooltipValue}>{item.avgLevel}%</Text>
+                </View>
+            )}
+            <Pressable
               style={[
                 styles.bar,
                 {
                   height: getBarHeight(item.avgLevel),
                   backgroundColor: getBarColor(item.status),
                 },
-              ]}
+              ]} 
+              onHoverIn={() => setHoveredIndex(index)} 
+              onHoverOut={() => setHoveredIndex(null)}
             />
             <Text style={styles.barLabel}>{item.day}</Text>
           </View>
@@ -206,4 +216,28 @@ const styles = StyleSheet.create({
     color: "#9CA3AF",
     letterSpacing: 0.5,
   } as TextStyle,
+
+  tooltip: {
+    position: "absolute",
+    backgroundColor: "#1F2937",
+    borderRadius: 8,
+    paddingVertical: 6, 
+    paddingHorizontal: 10,
+    bottom: '100%', 
+    marginBottom: 8,
+  } as ViewStyle, 
+
+  tooltipText: {
+    fontSize: 12,
+    fontWeight: "600",
+    color: "#FFFFFF",
+    textAlign: "center",
+  } as TextStyle, 
+
+  tooltipValue:{
+    fontSize: 14,
+    fontWeight: "700",
+    color: "#6366F1",
+    textAlign: "center",
+  } as TextStyle
 })
