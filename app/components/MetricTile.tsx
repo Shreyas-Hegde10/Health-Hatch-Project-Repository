@@ -63,11 +63,11 @@ const styles = StyleSheet.create({
   container: {
     backgroundColor: "#FFFFFF",
     borderRadius: 16,
-    padding: 16,
+    padding: 12,
     flexDirection: "row",
     alignItems: "center",
     flex: 1,
-    minWidth: 150,
+    minWidth: 140,
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.05,
@@ -76,16 +76,18 @@ const styles = StyleSheet.create({
   } as ViewStyle,
 
   iconContainer: {
-    width: 56,
-    height: 56,
+    width: 48,
+    height: 48,
     borderRadius: 12,
     justifyContent: "center",
     alignItems: "center",
-    marginRight: 12,
+    marginRight: 10,
   } as ViewStyle,
 
   content: {
     flex: 1,
+    minWidth: 0,
+    flexWrap: "nowrap"
   } as ViewStyle,
 
   label: {
@@ -103,14 +105,14 @@ const styles = StyleSheet.create({
   } as ViewStyle,
 
   value: {
-    fontSize: 24,
+    fontSize: 22,
     fontWeight: "700",
     color: "#1F2937",
-    marginRight: 4,
+    marginRight: 2,
   } as TextStyle,
 
   unit: {
-    fontSize: 12,
+    fontSize: 11,
     fontWeight: "500",
     color: "#6B7280",
   } as TextStyle,
