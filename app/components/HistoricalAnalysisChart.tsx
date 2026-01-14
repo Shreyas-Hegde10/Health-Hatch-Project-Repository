@@ -1,11 +1,12 @@
 import React, { useState, useMemo } from "react"
 import { StyleSheet, View, ViewStyle, TextStyle, Pressable, Dimensions } from "react-native"
 import { Text } from "./Text"
- import Svg, { Path, Defs, LinearGradient, Stop, Line, Circle, G } from "react-native-svg"
+ import Svg, { Path, Defs, LinearGradient, Stop, Line, Circle, G, Rect } from "react-native-svg"
 const { width: SCREEN_WIDTH } = Dimensions.get("window")
-const CHART_PADDING = 40
-const CHART_WIDTH = SCREEN_WIDTH - CHART_PADDING * 2
-const CHART_HEIGHT = 150
+const CHART_PADDING = 12
+const Y_AXIS_WIDTH = 28
+const CHART_WIDTH = SCREEN_WIDTH - CHART_PADDING * 2 - Y_AXIS_WIDTH
+const CHART_HEIGHT = 160
 
 export type MetricType = "hydration" | "impedance" | "skinTemp" | "heartRate"
 
@@ -35,7 +36,7 @@ const METRIC_CONFIGS: Record<
   hydration: { label: "HYDRATION", icon: "💧", unit: "%", color: "#6366F1" },
   impedance: { label: "IMPEDANCE", icon: "⚡", unit: "Ω", color: "#8B5CF6" },
   skinTemp: { label: "SKIN TEMP", icon: "🌡️", unit: "°C", color: "#F59E0B" },
-  heartRate: { label: "", icon: "❤️", unit: "bpm", color: "#EC4899" },
+  heartRate: { label: "HEART RATE", icon: "❤️", unit: "bpm", color: "#EC4899" },
 }
 
 /**
@@ -52,6 +53,7 @@ export const HistoricalAnalysisChart: React.FC<HistoricalAnalysisChartProps> = (
 }) => {
   const [selectedMetric, setSelectedMetric] = useState<MetricType>("hydration")
   const [timeRange, setTimeRange] = useState("7 DAYS")
+  const [selectedPointIndex, setSelectedPointIndex] = useState<number | null>(null)
 
   const getData = (metric: MetricType): MetricData[] => {
     switch (metric) {
@@ -72,44 +74,47 @@ export const HistoricalAnalysisChart: React.FC<HistoricalAnalysisChartProps> = (
   const currentConfig = METRIC_CONFIGS[selectedMetric]
   const currentAverage = averages[selectedMetric]
 
-  // Generate smooth curve path using bezier curves
-  const { areaPath, linePath, points } = useMemo(() => {
+  // Generate bar data with proper y-axis scaling
+  const { bars, yAxisValues } = useMemo(() => {
     if (!currentData || currentData.length === 0) {
-      return { areaPath: "", linePath: "", points: [] }
+      return { bars: [], yAxisValues: [] }
     }
 
     const values = currentData.map((d) => d.value)
-    const minVal = Math.min(...values)
     const maxVal = Math.max(...values)
-    const range = maxVal - minVal || 1 // Avoid division by zero
+    const minVal = 0 // Always start from 0
 
-    const padding = 20
-    const effectiveWidth = CHART_WIDTH - padding * 2
-    const effectiveHeight = CHART_HEIGHT - padding
+    // Calculate nice y-axis scale
+    const roundedMax = Math.ceil(maxVal / 100) * 100
+    const yAxisStep = roundedMax > 0 ? roundedMax / 4 : 25
+    const effectiveMax = roundedMax > 0 ? roundedMax : 100
+    const yAxisValues = [0, yAxisStep, yAxisStep * 2, yAxisStep * 3, effectiveMax]
 
-    const pts = currentData.map((d, i) => ({
-      x: padding + (i / (currentData.length - 1)) * effectiveWidth,
-      y: effectiveHeight - ((d.value - minVal) / range) * (effectiveHeight - 30) + 15,
-      day: d.day,
-      value: d.value,
-    }))
+    const topPadding = 10
+    const bottomPadding = 10
+    const effectiveHeight = CHART_HEIGHT - topPadding - bottomPadding
 
-    // Create smooth bezier curve
-    let pathLine = `M ${pts[0].x} ${pts[0].y}`
-    let pathArea = `M ${pts[0].x} ${CHART_HEIGHT} L ${pts[0].x} ${pts[0].y}`
+    // Calculate bar dimensions - moderate width bars (50% of segment width)
+    const segmentWidth = CHART_WIDTH / currentData.length
+    const barWidth = segmentWidth * 0.5
+    const leftMargin = 4 // Small margin to push bars slightly from left edge
 
-    for (let i = 0; i < pts.length - 1; i++) {
-      const current = pts[i]
-      const next = pts[i + 1]
-      const midX = (current.x + next.x) / 2
+    const bars = currentData.map((d, i) => {
+      const barHeight = Math.max((d.value / effectiveMax) * effectiveHeight, 2)
+      // Center each bar in its segment with slight left margin
+      const barX = leftMargin + segmentWidth * i + (segmentWidth - barWidth) / 2 - leftMargin
+      return {
+        x: barX,
+        y: CHART_HEIGHT - bottomPadding - barHeight,
+        width: barWidth,
+        height: barHeight,
+        day: d.day,
+        value: d.value,
+        centerX: segmentWidth * i + segmentWidth / 2,
+      }
+    })
 
-      pathLine += ` C ${midX} ${current.y}, ${midX} ${next.y}, ${next.x} ${next.y}`
-      pathArea += ` C ${midX} ${current.y}, ${midX} ${next.y}, ${next.x} ${next.y}`
-    }
-
-    pathArea += ` L ${pts[pts.length - 1].x} ${CHART_HEIGHT} Z`
-
-    return { areaPath: pathArea, linePath: pathLine, points: pts }
+    return { bars, yAxisValues }
   }, [currentData])
 
   const renderMetricTab = (metric: MetricType) => {
@@ -163,66 +168,144 @@ export const HistoricalAnalysisChart: React.FC<HistoricalAnalysisChartProps> = (
         </Pressable>
       </View>
 
-      {/* Metric Tabs */}
-      <View style={styles.tabsContainer}>
-        {renderMetricTab("hydration")}
-        {renderMetricTab("impedance")}
-        {renderMetricTab("skinTemp")}
-        {renderMetricTab("heartRate")}
+      {/* Metric Tabs - 2x2 Grid */}
+      <View style={styles.tabsGrid}>
+        <View style={styles.tabsRow}>
+          {renderMetricTab("hydration")}
+          {renderMetricTab("impedance")}
+        </View>
+        <View style={styles.tabsRow}>
+          {renderMetricTab("skinTemp")}
+          {renderMetricTab("heartRate")}
+        </View>
       </View>
 
-      {/* Chart */}
+      {/* Chart with Y-axis */}
       <View style={styles.chartContainer}>
-        <Svg width={CHART_WIDTH} height={CHART_HEIGHT}>
-          <Defs>
-            <LinearGradient id="areaGradient" x1="0" y1="0" x2="0" y2="1">
-              <Stop offset="0%" stopColor={currentConfig.color} stopOpacity={0.3} />
-              <Stop offset="100%" stopColor={currentConfig.color} stopOpacity={0.05} />
-            </LinearGradient>
-          </Defs>
+        <View style={styles.chartWithYAxis}>
+          {/* Y-axis labels */}
+          <View style={styles.yAxisLabels}>
+            {yAxisValues.map((value, index) => {
+              const topPadding = 10
+              const bottomPadding = 10
+              const effectiveHeight = CHART_HEIGHT - topPadding - bottomPadding
+              const yPosition = CHART_HEIGHT - bottomPadding - (index / (yAxisValues.length - 1)) * effectiveHeight
+              return (
+                <Text
+                  key={index}
+                  style={[
+                    styles.yAxisLabel,
+                    {
+                      position: "absolute",
+                      top: yPosition - 12, 
+                    },
+                  ]}
+                >
+                  {Math.round(value)}
+                </Text>
+              )
+            })}
+          </View>
 
-          {/* Horizontal grid lines */}
-          {[0, 1, 2].map((i) => (
-            <Line
-              key={i}
-              x1={20}
-              y1={30 + i * 40}
-              x2={CHART_WIDTH - 20}
-              y2={30 + i * 40}
-              stroke="#E5E7EB"
-              strokeWidth={1}
-              strokeDasharray="4,4"
-            />
-          ))}
+          {/* SVG Chart */}
+          <Svg width={CHART_WIDTH} height={CHART_HEIGHT}>
+            <Defs>
+              <LinearGradient id="barGradient" x1="0" y1="0" x2="0" y2="1">
+                <Stop offset="0%" stopColor={currentConfig.color} stopOpacity={0.8} />
+                <Stop offset="100%" stopColor={currentConfig.color} stopOpacity={0.4} />
+              </LinearGradient>
+            </Defs>
 
-          {/* Area fill */}
-          <Path d={areaPath} fill="url(#areaGradient)" />
+            {/* Horizontal grid lines */}
+            {yAxisValues.map((_, i) => {
+              // Use same padding values as bar calculations for alignment
+              const topPadding = 10
+              const bottomPadding = 10
+              const effectiveHeight = CHART_HEIGHT - topPadding - bottomPadding
+              const yPosition = CHART_HEIGHT - bottomPadding - (i / (yAxisValues.length - 1)) * effectiveHeight
+              return (
+                <Line
+                  key={i}
+                  x1={0}
+                  y1={yPosition}
+                  x2={CHART_WIDTH}
+                  y2={yPosition}
+                  stroke="#E5E7EB"
+                  strokeWidth={1}
+                  strokeDasharray="4,4"
+                />
+              )
+            })}
 
-          {/* Line */}
-          <Path
-            d={linePath}
-            stroke={currentConfig.color}
-            strokeWidth={2.5}
-            fill="none"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          />
+            {/* Bars */}
+            {bars.map((bar, index) => (
+              <G key={index}>
+                <Rect
+                  x={bar.x}
+                  y={bar.y}
+                  width={bar.width}
+                  height={bar.height}
+                  fill={selectedPointIndex === index ? currentConfig.color : "url(#barGradient)"}
+                  rx={4}
+                  ry={4}
+                  opacity={selectedPointIndex === index ? 1 : 0.8}
+                />
+                {/* Invisible tap zone */}
+                <Rect
+                  x={bar.x}
+                  y={0}
+                  width={bar.width}
+                  height={CHART_HEIGHT}
+                  fill="transparent"
+                  onPress={() =>
+                    setSelectedPointIndex(selectedPointIndex === index ? null : index)
+                  }
+                />
+              </G>
+            ))}
+          </Svg>
+        </View>
 
-          {/* Data points */}
-          {points.map((point, index) => (
-            <G key={index}>
-              <Circle cx={point.x} cy={point.y} r={4} fill={currentConfig.color} />
-              <Circle cx={point.x} cy={point.y} r={2} fill="#FFFFFF" />
-            </G>
-          ))}
-        </Svg>
+        {/* Tooltip */}
+        {selectedPointIndex !== null && bars[selectedPointIndex] && (
+          <View
+            style={[
+              styles.tooltip,
+              {
+                left: Math.max(
+                  Y_AXIS_WIDTH + 10,
+                  Math.min(
+                    bars[selectedPointIndex].centerX + Y_AXIS_WIDTH - 55,
+                    SCREEN_WIDTH - CHART_PADDING - 110,
+                  ),
+                ),
+              },
+            ]}
+          >
+            <Text style={styles.tooltipDay}>{bars[selectedPointIndex].day}</Text>
+            <Text style={styles.tooltipValue}>
+              {`${formatValue(bars[selectedPointIndex].value)}${currentConfig.unit}`}
+            </Text>
+          </View>
+        )}
 
         {/* X-axis labels */}
         <View style={styles.xAxisLabels}>
           {currentData.map((item, index) => (
-            <Text key={index} style={styles.xAxisLabel}>
-              {item.day}
-            </Text>
+            <Pressable
+              key={index}
+              onPress={() => setSelectedPointIndex(selectedPointIndex === index ? null : index)}
+              style={styles.xAxisLabelContainer}
+            >
+              <Text
+                style={[
+                  styles.xAxisLabel,
+                  selectedPointIndex === index && styles.xAxisLabelSelected,
+                ]}
+              >
+                {item.day}
+              </Text>
+            </Pressable>
           ))}
         </View>
       </View>
@@ -258,9 +341,9 @@ const styles = StyleSheet.create({
   container: {
     backgroundColor: "#FFFFFF",
     borderRadius: 16,
-    padding: 20,
-    marginHorizontal: 16,
-    marginBottom: 16,
+    padding: 10,
+    marginHorizontal: 8,
+    marginBottom: 12,
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.06,
@@ -272,7 +355,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    marginBottom: 20,
+    marginBottom: 12,
   } as ViewStyle,
 
   title: {
@@ -304,19 +387,25 @@ const styles = StyleSheet.create({
     color: "#9CA3AF",
   } as TextStyle,
 
-  tabsContainer: {
+  tabsGrid: {
+    marginBottom: 12,
+  } as ViewStyle,
+
+  tabsRow: {
     flexDirection: "row",
     justifyContent: "space-between",
-    marginBottom: 20,
-    gap: 8,
+    gap: 6,
+    marginBottom: 6,
   } as ViewStyle,
 
   metricTab: {
+    flex: 1,
     flexDirection: "row",
     alignItems: "center",
-    paddingHorizontal: 12,
-    paddingVertical: 10,
-    borderRadius: 20,
+    justifyContent: "center",
+    paddingHorizontal: 8,
+    paddingVertical: 8,
+    borderRadius: 10,
     backgroundColor: "#F9FAFB",
     borderWidth: 1,
     borderColor: "#E5E7EB",
@@ -332,11 +421,11 @@ const styles = StyleSheet.create({
   } as TextStyle,
 
   metricLabel: {
-    fontSize: 11,
+    fontSize: 9,
     fontWeight: "600",
     color: "#6B7280",
-    marginLeft: 6,
-    letterSpacing: 0.3,
+    marginLeft: 4,
+    letterSpacing: 0.2,
   } as TextStyle,
 
   metricLabelSelected: {
@@ -344,30 +433,92 @@ const styles = StyleSheet.create({
   } as TextStyle,
 
   chartContainer: {
-    alignItems: "center",
-    marginBottom: 16,
+    marginBottom: 12,
   } as ViewStyle,
+
+  chartWithYAxis: {
+    flexDirection: "row",
+    alignItems: "stretch",
+    width: "100%",
+  } as ViewStyle,
+
+  yAxisLabels: {
+    width: Y_AXIS_WIDTH,
+    height: CHART_HEIGHT,
+    justifyContent: "space-between",
+    paddingVertical: 5,
+  } as ViewStyle,
+
+  yAxisLabel: {
+    fontSize: 9,
+    color: "#9CA3AF",
+    fontWeight: "500",
+    textAlign: "right",
+    paddingRight: 8,
+  } as TextStyle,
+
+  tooltip: {
+    position: "absolute",
+    top: 20,
+    backgroundColor: "#FFFFFF",
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 12,
+    alignItems: "center",
+    zIndex: 10,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 12,
+    elevation: 5,
+    borderWidth: 1,
+    borderColor: "#F3F4F6",
+  } as ViewStyle,
+
+  tooltipDay: {
+    fontSize: 13,
+    fontWeight: "600",
+    color: "#4B5563",
+    marginBottom: 4,
+  } as TextStyle,
+
+  tooltipValue: {
+    fontSize: 16,
+    fontWeight: "700",
+    color: "#1F2937",
+  } as TextStyle,
 
   xAxisLabels: {
     flexDirection: "row",
     justifyContent: "space-between",
-    width: CHART_WIDTH - 40,
+    width: CHART_WIDTH,
+    marginLeft: Y_AXIS_WIDTH,
     paddingTop: 8,
   } as ViewStyle,
 
+  xAxisLabelContainer: {
+    flex: 1,
+    alignItems: "center",
+  } as ViewStyle,
+
   xAxisLabel: {
-    fontSize: 12,
+    fontSize: 11,
     fontWeight: "500",
-    color: "#9CA3AF",
+    color: "#6B7280",
+  } as TextStyle,
+
+  xAxisLabelSelected: {
+    color: "#4F46E5",
+    fontWeight: "700",
   } as TextStyle,
 
   statsContainer: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "flex-end",
-    paddingTop: 16,
+    paddingTop: 12,
     borderTopWidth: 1,
-    borderTopColor: "#F3F4F6",
+    borderTopColor: "#E5E7EB",
   } as ViewStyle,
 
   statItem: {
@@ -388,13 +539,13 @@ const styles = StyleSheet.create({
   } as ViewStyle,
 
   statValue: {
-    fontSize: 32,
+    fontSize: 28,
     fontWeight: "700",
     color: "#1F2937",
   } as TextStyle,
 
   statUnit: {
-    fontSize: 18,
+    fontSize: 14,
     fontWeight: "500",
     color: "#6B7280",
     marginLeft: 2,
