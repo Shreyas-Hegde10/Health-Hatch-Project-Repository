@@ -1,11 +1,10 @@
 import React, { useState, useMemo } from "react"
-import { StyleSheet, View, ViewStyle, TextStyle, Pressable, Dimensions } from "react-native"
+import { StyleSheet, View, ViewStyle, TextStyle, Pressable, useWindowDimensions } from "react-native"
 import { Text } from "./Text"
- import Svg, { Path, Defs, LinearGradient, Stop, Line, Circle, G, Rect } from "react-native-svg"
-const { width: SCREEN_WIDTH } = Dimensions.get("window")
+import Svg, { Path, Defs, LinearGradient, Stop, Line, Circle, G, Rect } from "react-native-svg"
+
 const CHART_PADDING = 12
 const Y_AXIS_WIDTH = 28
-const CHART_WIDTH = SCREEN_WIDTH - CHART_PADDING * 2 - Y_AXIS_WIDTH
 const CHART_HEIGHT = 160
 
 export type MetricType = "hydration" | "impedance" | "skinTemp" | "heartRate"
@@ -51,6 +50,9 @@ export const HistoricalAnalysisChart: React.FC<HistoricalAnalysisChartProps> = (
   averages,
   style,
 }) => {
+  const { width: screenWidth } = useWindowDimensions()
+  const chartWidth = screenWidth - CHART_PADDING * 2 - Y_AXIS_WIDTH
+  
   const [selectedMetric, setSelectedMetric] = useState<MetricType>("hydration")
   const [timeRange, setTimeRange] = useState("7 DAYS")
   const [selectedPointIndex, setSelectedPointIndex] = useState<number | null>(null)
@@ -95,7 +97,7 @@ export const HistoricalAnalysisChart: React.FC<HistoricalAnalysisChartProps> = (
     const effectiveHeight = CHART_HEIGHT - topPadding - bottomPadding
 
     // Calculate bar dimensions - moderate width bars (50% of segment width)
-    const segmentWidth = CHART_WIDTH / currentData.length
+    const segmentWidth = chartWidth / currentData.length
     const barWidth = segmentWidth * 0.5
     const leftMargin = 4 // Small margin to push bars slightly from left edge
 
@@ -115,7 +117,7 @@ export const HistoricalAnalysisChart: React.FC<HistoricalAnalysisChartProps> = (
     })
 
     return { bars, yAxisValues }
-  }, [currentData])
+  }, [currentData, chartWidth])
 
   const renderMetricTab = (metric: MetricType) => {
     const config = METRIC_CONFIGS[metric]
@@ -208,7 +210,7 @@ export const HistoricalAnalysisChart: React.FC<HistoricalAnalysisChartProps> = (
           </View>
 
           {/* SVG Chart */}
-          <Svg width={CHART_WIDTH} height={CHART_HEIGHT}>
+          <Svg width={chartWidth} height={CHART_HEIGHT}>
             <Defs>
               <LinearGradient id="barGradient" x1="0" y1="0" x2="0" y2="1">
                 <Stop offset="0%" stopColor={currentConfig.color} stopOpacity={0.8} />
@@ -228,7 +230,7 @@ export const HistoricalAnalysisChart: React.FC<HistoricalAnalysisChartProps> = (
                   key={i}
                   x1={0}
                   y1={yPosition}
-                  x2={CHART_WIDTH}
+                  x2={chartWidth}
                   y2={yPosition}
                   stroke="#E5E7EB"
                   strokeWidth={1}
@@ -276,7 +278,7 @@ export const HistoricalAnalysisChart: React.FC<HistoricalAnalysisChartProps> = (
                   Y_AXIS_WIDTH + 10,
                   Math.min(
                     bars[selectedPointIndex].centerX + Y_AXIS_WIDTH - 55,
-                    SCREEN_WIDTH - CHART_PADDING - 110,
+                    screenWidth - CHART_PADDING - 110,
                   ),
                 ),
               },
@@ -290,7 +292,7 @@ export const HistoricalAnalysisChart: React.FC<HistoricalAnalysisChartProps> = (
         )}
 
         {/* X-axis labels */}
-        <View style={styles.xAxisLabels}>
+        <View style={[styles.xAxisLabels, { width: chartWidth }]}>
           {currentData.map((item, index) => (
             <Pressable
               key={index}
@@ -491,7 +493,6 @@ const styles = StyleSheet.create({
   xAxisLabels: {
     flexDirection: "row",
     justifyContent: "space-between",
-    width: CHART_WIDTH,
     marginLeft: Y_AXIS_WIDTH,
     paddingTop: 8,
   } as ViewStyle,
